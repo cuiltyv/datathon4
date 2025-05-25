@@ -145,6 +145,7 @@ La interfaz estará accesible en `http://localhost:5173`.
 - difflib
 
 ### 6. Imagenes
+A continuación se muestra una imagen de la aplicación en ejecución. Para ver el comportamiento del modelo, debes introducir un ID de cliente válido en el campo de búsqueda. Esto filtrará los registros de ese cliente y mostrará gráficas personalizadas junto con la predicción estimada de su siguiente gasto.
 
 <img width="1800" alt="Screenshot 2025-05-25 at 1 29 45 p m" src="https://github.com/user-attachments/assets/f7daacb1-f8d6-4357-851c-44976e1b32af" />
 <img width="1800" alt="Screenshot 2025-05-25 at 1 29 47 p m" src="https://github.com/user-attachments/assets/d92d4097-9723-48d3-932a-259818bf49df" />
