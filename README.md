@@ -25,16 +25,16 @@ Si estan corriendo la api localmente, puede salir problema de CORS, resolverlo c
 
 # HeyPredictor 📊🔮  
 Equipo: 404 Data Not Found
+
 **Predicción de gastos recurrentes para Hey Banco**
 
 Este proyecto proporciona una solución completa para **detectar patrones de gastos recurrentes** en los clientes de Hey Banco y **predecir el monto y el tiempo estimado hasta la siguiente transacción**. Está dividido en dos componentes principales:
 
 - Un notebook de entrenamiento y generación de features (`hey_predictions.ipynb`)
-- Una aplicación fullstack (React + Flask API) para hacer predicciones en tiempo real a partir de CSVs nuevos.
-
+- Una aplicación fullstack (React + Flask API) para hacer predicciones en tiempo real a partir de CSVs nuevos con features específicas.
 ---
 
-## 🧠 Lógica del modelo
+## Lógica del modelo
 
 ### `hey_predictions.ipynb` contiene:
 
@@ -43,7 +43,7 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
 
 2. **Limpieza y procesamiento**  
    - Conversión de fechas
-   - Relleno y eliminación de valores nulos
+   - Correción de columna *comercio*.
    - Agrupaciones por cliente y comercio
 
 3. **Ingeniería de features**  
@@ -79,7 +79,7 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
 
 ---
 
-## 🧩 Aplicación React + Flask API
+## Aplicación React + Flask API
 
 ### Estructura
 - **Frontend**: construida con Vite + React + Tailwind. Permite:
@@ -94,7 +94,7 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
     "monto_estimado": 123.45,
     "dias_estimados": 30
   }
-
+```
 ---
 
 ## 🚀 Cómo ejecutar la aplicación
@@ -102,8 +102,8 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
 ### 1. Clona el repositorio
 
 ```bash
-git clone https://github.com/tu-usuario/hey-predictor.git
-cd hey-predictor
+git clone https://github.com/cuiltyv/datathon4.git
+cd datathon4
 ```
 
 ### 2. Ejecuta el notebook
@@ -111,9 +111,12 @@ cd hey-predictor
 Abre el archivo `hey_predictions.ipynb` y corre todas las celdas de principio a fin:
 
 - Esto generará un archivo `.csv` de entrada que la aplicación utilizará para hacer predicciones.
-- También entrenará y guardará dos modelos como `model1.pkl` (para monto estimado) y `model2.pkl` (para días estimados).
+- También entrenará y guardará dos modelos como `rf_model_monto.joblib` (para monto estimado) y `rf_model_fecha.pkl` (para días estimados).
 
 Asegúrate de tener todas las dependencias necesarias instaladas mediante el archivo `requirements.txt`.
+```
+pip install -r requirements.txt
+```
 
 ### 3. Copia los modelos al backend
 
@@ -122,35 +125,36 @@ Una vez generados los modelos, colócalos en la carpeta `backend/`. Esta carpeta
 ### 4. Corre el backend Flask
 
 Desde la carpeta `backend`, ejecuta el servidor Flask. Esto iniciará la API local que responde a las predicciones en la ruta `/predict`.
-
-La API estará disponible en `http://127.0.0.1:5000`.
+```bash
+python ./datathon/backend/app.py
+```
+Esto levantará la API en http://127.0.0.1:5000.
 
 ### 5. Corre el frontend React
 
-Desde la carpeta `frontend`, instala las dependencias necesarias y luego levanta la app en modo desarrollo.
+Desde la carpeta `datathon4`, instala las dependencias necesarias y luego levanta la app en modo desarrollo.
+
+```bash
+cd datathon4
+npm install
+npm run dev
+```
 
 La interfaz estará accesible en `http://localhost:5173`.
 
 ---
 
-## 🔁 Replicabilidad paso a paso
+## Replicabilidad paso a paso
 
 1. Ejecuta el notebook `hey_predictions.ipynb`.
-2. Guarda los modelos `.joblib` o `.pkl` en la carpeta `backend/`.
+2. Guarda los modelos `.joblib` en la carpeta `backend/`.
 3. Ejecuta el servidor Flask.
-4. Levanta el frontend con Vite.
-5. Sube un nuevo archivo CSV, busca por ID de cliente y obtén las predicciones fila por fila.
+4. Levanta el frontend.
+5. Sube un nuevo archivo CSV, busca por ID de cliente y obtén las predicciones.
 
 ---
 
-## ✨ Autoría y agradecimientos
-
-Este proyecto fue desarrollado para propósitos de análisis predictivo para Hey Banco.  
-El enfoque está inspirado en patrones reales de comportamiento financiero y técnicas modernas de machine learning.
-
----
-
-## 📦 Requisitos sugeridos (`requirements.txt`)
+## Requisitos sugeridos (`requirements.txt`)
 
 - pandas  
 - numpy  
@@ -161,4 +165,5 @@ El enfoque está inspirado en patrones reales de comportamiento financiero y té
 - jupyter  
 - matplotlib  
 - seaborn
+- difflib
 
