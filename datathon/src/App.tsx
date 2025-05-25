@@ -9,6 +9,16 @@ import {
 } from "lucide-react"
 import { useState, useMemo } from "react"
 import Papa from 'papaparse'
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: 'http://127.0.0.1:5000',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  withCredentials: true
+})
 
 interface RowData {
   id: string;
@@ -17,11 +27,22 @@ interface RowData {
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [dataMap, setDataMap] = useState<Map<string, string[]>>(new Map())
+  const [dataMap, setDataMap] = useState<Map<string, string[][]>>(new Map())
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
   const [searchId, setSearchId] = useState("")
-  const [searchResult, setSearchResult] = useState<string[] | null>(null)
+  const [searchResult, setSearchResult] = useState<string[][] | null>(null)
+  const [predictions, setPredictions] = useState<Map<number, number>>(new Map())
+  const [isPredicting, setIsPredicting] = useState(false)
+
+  const getPrediction = async (data: string[], recordIndex: number) => {
+    try {
+      const response = await api.post('/predict', { data })
+      setPredictions(prev => new Map(prev).set(recordIndex, response.data.prediction))
+    } catch (error) {
+      console.error('Error getting prediction:', error)
+    }
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -37,12 +58,14 @@ function App() {
           console.log('Parsing complete:', results.data.length, 'rows')
           
           // Create a new Map to store the data
-          const newDataMap = new Map<string, string[]>()
+          const newDataMap = new Map<string, string[][]>()
           
           // Skip header row and process data
           results.data.slice(1).forEach((row: string[]) => {
             if (row && row[0]) {
-              newDataMap.set(row[0], row)
+              const id = row[0]
+              const existingRecords = newDataMap.get(id) || []
+              newDataMap.set(id, [...existingRecords, row])
             }
           })
           
@@ -64,6 +87,23 @@ function App() {
     setSearchId(id)
     const result = dataMap.get(id)
     setSearchResult(result || null)
+    setPredictions(new Map()) // Reset predictions when searching for a new record
+  }
+
+  const handlePredict = async () => {
+    if (searchResult && searchResult.length > 0) {
+      setIsPredicting(true)
+      setPredictions(new Map()) // Reset predictions
+      
+      // Create an array of promises for all predictions
+      const predictionPromises = searchResult.map((record, index) => 
+        getPrediction(record, index)
+      )
+      
+      // Wait for all predictions to complete
+      await Promise.all(predictionPromises)
+      setIsPredicting(false)
+    }
   }
 
   return (
@@ -118,12 +158,7 @@ function App() {
             </div>
           </div>
 
-          <div className="pt-4 border-t">
-            <Button variant="ghost" className="w-full justify-start">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </div>
+          
         </nav>
       </div>
 
@@ -197,11 +232,43 @@ function App() {
                       </div>
                       {searchResult && (
                         <div className="space-y-2">
-                          <h3 className="font-medium">Record Details:</h3>
-                          <div className="grid gap-2">
-                            {searchResult.map((value, index) => (
-                              <div key={index} className="p-2 bg-accent rounded-md">
-                                {value}
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium">Record Details:</h3>
+                            <Button 
+                              onClick={handlePredict}
+                              disabled={isPredicting}
+                              size="sm"
+                            >
+                              {isPredicting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Getting Predictions...
+                                </>
+                              ) : (
+                                'Get All Predictions'
+                              )}
+                            </Button>
+                          </div>
+                          <div className="space-y-4">
+                            {searchResult.map((record, recordIndex) => (
+                              <div key={recordIndex} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-medium text-muted-foreground">
+                                    Record {recordIndex + 1}
+                                  </h4>
+                                  {predictions.has(recordIndex) && (
+                                    <div className="text-sm font-medium text-primary">
+                                      Prediction: {predictions.get(recordIndex)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="grid gap-2">
+                                  {record.map((value, index) => (
+                                    <div key={index} className="p-2 bg-accent rounded-md">
+                                      {value}
+                                    </div>
+                                  ))}
+                                </div>
                               </div>
                             ))}
                           </div>
