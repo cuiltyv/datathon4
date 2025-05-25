@@ -5,32 +5,44 @@ import {
   FileSpreadsheet,
   Settings,
   Search,
-  Bell,
   Loader2
 } from "lucide-react"
 import { useState, useMemo } from "react"
 import Papa from 'papaparse'
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select"
+import axios from 'axios'
+
+const api = axios.create({
+  baseURL: 'http://127.0.0.1:5000',
+  headers: {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json'
+  },
+  withCredentials: true
+})
+
+interface RowData {
+  id: string;
+  values: string[];
+}
 
 function App() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null)
-  const [csvData, setCsvData] = useState<string[]>([])
+  const [dataMap, setDataMap] = useState<Map<string, string[][]>>(new Map())
   const [isLoading, setIsLoading] = useState(false)
   const [progress, setProgress] = useState(0)
-  const [searchQuery, setSearchQuery] = useState("")
+  const [searchId, setSearchId] = useState("")
+  const [searchResult, setSearchResult] = useState<string[][] | null>(null)
+  const [predictions, setPredictions] = useState<Map<number, number>>(new Map())
+  const [isPredicting, setIsPredicting] = useState(false)
 
-  const filteredData = useMemo(() => {
-    if (!searchQuery) return csvData
-    return csvData.filter(value => 
-      value.toLowerCase().includes(searchQuery.toLowerCase())
-    )
-  }, [csvData, searchQuery])
+  const getPrediction = async (data: string[], recordIndex: number) => {
+    try {
+      const response = await api.post('/predict', { data })
+      setPredictions(prev => new Map(prev).set(recordIndex, response.data.prediction))
+    } catch (error) {
+      console.error('Error getting prediction:', error)
+    }
+  }
 
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
@@ -38,22 +50,27 @@ function App() {
       setSelectedFile(file)
       setIsLoading(true)
       setProgress(0)
-      setCsvData([])
+      setDataMap(new Map())
+      setSearchResult(null)
 
-      // Configure PapaParse for chunked processing
       Papa.parse(file, {
         complete: (results) => {
           console.log('Parsing complete:', results.data.length, 'rows')
-          // Get the first value from each row
-          const firstValues = results.data
-            .filter((row: any) => row && row[0])
-            .map((row: any) => row[0])
           
-          console.log('First values:', firstValues.length)
-
-          // Remove first row
-          firstValues.shift()
-          setCsvData(firstValues)
+          // Create a new Map to store the data
+          const newDataMap = new Map<string, string[][]>()
+          
+          // Skip header row and process data
+          results.data.slice(1).forEach((row: string[]) => {
+            if (row && row[0]) {
+              const id = row[0]
+              const existingRecords = newDataMap.get(id) || []
+              newDataMap.set(id, [...existingRecords, row])
+            }
+          })
+          
+          console.log('Processed rows:', newDataMap.size)
+          setDataMap(newDataMap)
           setIsLoading(false)
         },
         error: (error) => {
@@ -63,6 +80,29 @@ function App() {
         header: false,
         skipEmptyLines: true
       })
+    }
+  }
+
+  const handleSearch = (id: string) => {
+    setSearchId(id)
+    const result = dataMap.get(id)
+    setSearchResult(result || null)
+    setPredictions(new Map()) // Reset predictions when searching for a new record
+  }
+
+  const handlePredict = async () => {
+    if (searchResult && searchResult.length > 0) {
+      setIsPredicting(true)
+      setPredictions(new Map()) // Reset predictions
+      
+      // Create an array of promises for all predictions
+      const predictionPromises = searchResult.map((record, index) => 
+        getPrediction(record, index)
+      )
+      
+      // Wait for all predictions to complete
+      await Promise.all(predictionPromises)
+      setIsPredicting(false)
     }
   }
 
@@ -118,12 +158,7 @@ function App() {
             </div>
           </div>
 
-          <div className="pt-4 border-t">
-            <Button variant="ghost" className="w-full justify-start">
-              <Settings className="mr-2 h-4 w-4" />
-              Settings
-            </Button>
-          </div>
+          
         </nav>
       </div>
 
@@ -147,21 +182,23 @@ function App() {
                 <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{csvData.length.toLocaleString()}</div>
+                <div className="text-2xl font-bold">{dataMap.size.toLocaleString()}</div>
                 <p className="text-xs text-muted-foreground">
-                  {filteredData.length} matching search
+                  {searchResult ? "Record found" : "Search by ID"}
                 </p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                <CardTitle className="text-sm font-medium">Processed</CardTitle>
+                <CardTitle className="text-sm font-medium">Status</CardTitle>
                 <FileSpreadsheet className="h-4 w-4 text-muted-foreground" />
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">{progress.toLocaleString()}</div>
+                <div className="text-2xl font-bold">
+                  {isLoading ? "Processing..." : "Ready"}
+                </div>
                 <p className="text-xs text-muted-foreground">
-                  {isLoading ? "Processing..." : "Complete"}
+                  {isLoading ? `${progress.toLocaleString()} rows processed` : "Search by ID"}
                 </p>
               </CardContent>
             </Card>
@@ -170,7 +207,7 @@ function App() {
           <div className="mt-6">
             <Card>
               <CardHeader>
-                <CardTitle>CSV Data</CardTitle>
+                <CardTitle>Search Records</CardTitle>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
@@ -181,37 +218,71 @@ function App() {
                         Loading data... {progress.toLocaleString()} rows processed
                       </span>
                     </div>
-                  ) : csvData.length > 0 ? (
+                  ) : dataMap.size > 0 ? (
                     <div className="space-y-4">
                       <div className="relative">
                         <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                           type="search"
-                          placeholder="Search values..."
+                          placeholder="Enter ID to search..."
                           className="pl-8"
-                          value={searchQuery}
-                          onChange={(e) => setSearchQuery(e.target.value)}
+                          value={searchId}
+                          onChange={(e) => handleSearch(e.target.value)}
                         />
                       </div>
-                      <Select>
-                        <SelectTrigger className="w-full">
-                          <SelectValue placeholder="Select a value" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          {filteredData.map((value, index) => (
-                            <SelectItem key={index} value={value}>
-                              {value}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
+                      {searchResult && (
+                        <div className="space-y-2">
+                          <div className="flex items-center justify-between">
+                            <h3 className="font-medium">Record Details:</h3>
+                            <Button 
+                              onClick={handlePredict}
+                              disabled={isPredicting}
+                              size="sm"
+                            >
+                              {isPredicting ? (
+                                <>
+                                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                  Getting Predictions...
+                                </>
+                              ) : (
+                                'Get All Predictions'
+                              )}
+                            </Button>
+                          </div>
+                          <div className="space-y-4">
+                            {searchResult.map((record, recordIndex) => (
+                              <div key={recordIndex} className="space-y-2">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="text-sm font-medium text-muted-foreground">
+                                    Record {recordIndex + 1}
+                                  </h4>
+                                  {predictions.has(recordIndex) && (
+                                    <div className="text-sm font-medium text-primary">
+                                      Prediction: {predictions.get(recordIndex)}
+                                    </div>
+                                  )}
+                                </div>
+                                <div className="grid gap-2">
+                                  {record.map((value, index) => (
+                                    <div key={index} className="p-2 bg-accent rounded-md">
+                                      {value}
+                                    </div>
+                                  ))}
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <p className="text-sm text-muted-foreground">
-                        Showing {filteredData.length} of {csvData.length} records
+                        {searchResult 
+                          ? "Record found" 
+                          : "Enter an ID to search for a record"}
                       </p>
                     </div>
                   ) : (
                     <p className="text-muted-foreground">
-                      Upload a CSV file to see the data
+                      Upload a CSV file to search records
                     </p>
                   )}
                 </div>
