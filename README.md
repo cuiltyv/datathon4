@@ -9,7 +9,7 @@ entrar al folder
 
 (Revisar si se tiene npm installado (NODE)) sino installarlo
 
-instalar paquetes
+instalar paquetes (estar adentro del folder de datathon
 - npm i
 
 correr
