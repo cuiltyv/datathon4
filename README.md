@@ -91,6 +91,7 @@ Abre el archivo `hey_predictions.ipynb` y corre todas las celdas de principio a 
 
 Asegúrate de tener todas las dependencias necesarias instaladas mediante el archivo `requirements.txt`.
 ```
+cd backend
 pip install -r requirements.txt
 ```
 
