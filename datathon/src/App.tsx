@@ -17,7 +17,7 @@ import { BarChart as ReBarChart, Bar, XAxis, YAxis, Legend } from 'recharts'
 import { LineChart, Line } from 'recharts'
 
 const api = axios.create({
-  baseURL: 'http://127.0.0.1:5000',
+  baseURL: 'http://127.0.0.1:5000', // Cambiar a la direccion de la API
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json'
@@ -42,7 +42,8 @@ function App() {
 
   const getPrediction = async (data: string[], recordIndex: number) => {
     try {
-      const response = await api.post('/predict', { data })
+      const response = await api.post('/predict', { data }) // Cambiar a la ruta de la API
+      // Aqui ando mandando un post request a la API, donde tengo como llave la id y valor un arreglo de los datos por comercio
       setPredictions(prev => new Map(prev).set(recordIndex, response.data.prediction))
     } catch (error) {
       console.error('Error getting prediction:', error)
