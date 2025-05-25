@@ -341,7 +341,7 @@ function App() {
                                   outerRadius={70}
                                   label={renderPieLabel}
                                 >
-                                  {pieData.map((entry, idx) => (
+                                  {pieData.map((_, idx) => (
                                     <Cell key={`cell-${idx}`} fill={pieColors[idx % pieColors.length]} />
                                   ))}
                                 </Pie>
