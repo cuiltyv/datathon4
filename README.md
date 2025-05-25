@@ -144,3 +144,12 @@ La interfaz estará accesible en `http://localhost:5173`.
 - seaborn
 - difflib
 
+### 6. Imagenes
+
+<img width="1800" alt="Screenshot 2025-05-25 at 1 29 45 p m" src="https://github.com/user-attachments/assets/f7daacb1-f8d6-4357-851c-44976e1b32af" />
+<img width="1800" alt="Screenshot 2025-05-25 at 1 29 47 p m" src="https://github.com/user-attachments/assets/d92d4097-9723-48d3-932a-259818bf49df" />
+<img width="1800" alt="Screenshot 2025-05-25 at 1 29 59 p m" src="https://github.com/user-attachments/assets/bba917a4-b269-4401-a913-706fd7f48abc" />
+<img width="1800" alt="Screenshot 2025-05-25 at 1 30 02 p m" src="https://github.com/user-attachments/assets/7bacf7f6-0b26-4e3b-88f3-8d501aa7b9c1" />
+<img width="1800" alt="Screenshot 2025-05-25 at 1 30 04 p m" src="https://github.com/user-attachments/assets/4e596573-faa0-48e4-ab88-346a37444607" />
+
+
