@@ -61,12 +61,13 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
    - Baja variabilidad del monto (desviación estándar < 30% de la media)
 
    ```python
-   frecuencia['es_recurrente'] = (
-       (frecuencia['num_transacciones'] >= 3) &
-       (frecuencia['dias_entre'] <= 45) &
-       (frecuencia['monto_std'] < 0.3 * frecuencia['monto_promedio'])
-   )
-  ```
+      frecuencia['es_recurrente'] = (
+          (frecuencia['num_transacciones'] >= 3) &
+          (frecuencia['dias_entre'] <= 45) &
+          (frecuencia['monto_std'] < 0.3 * frecuencia['monto_promedio'])
+      )
+     ```
+
 5. **Entrenamiento de modelos Random Forest Regressor**  
    - Un modelo para predecir el **monto estimado**
    - Otro para predecir los **días hasta la siguiente compra**
@@ -94,10 +95,10 @@ Este proyecto proporciona una solución completa para **detectar patrones de gas
     "monto_estimado": 123.45,
     "dias_estimados": 30
   }
-```
+   ```
 ---
 
-## 🚀 Cómo ejecutar la aplicación
+## Cómo ejecutar la aplicación
 
 ### 1. Clona el repositorio
 
