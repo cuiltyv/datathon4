@@ -5,13 +5,13 @@ Equipo: 404 Data Not Found
 
 Este proyecto proporciona una solución completa para **detectar patrones de gastos recurrentes** en los clientes de Hey Banco y **predecir el monto y el tiempo estimado hasta la siguiente transacción**. Está dividido en dos componentes principales:
 
-- Un notebook de entrenamiento y generación de features (`hey_predictions.ipynb`)
+- Un notebook de entrenamiento y generación de features (`Hey_prediction.ipynb`)
 - Una aplicación fullstack (React + Flask API) para hacer predicciones en tiempo real a partir de CSVs nuevos con features específicas.
 ---
 
 ## Lógica del modelo
 
-### `hey_predictions.ipynb` contiene:
+### `Hey_prediction.ipynb` contiene:
 
 1. **Exploración de datos (EDA)**  
    Se analizan tendencias generales, distribución de montos y periodicidad de transacciones por cliente-comercio.
@@ -84,7 +84,7 @@ cd datathon4
 
 ### 2. Ejecuta el notebook
 
-Abre el archivo `hey_predictions.ipynb` y corre todas las celdas de principio a fin:
+Abre el archivo `Hey_prediction.ipynb` y corre todas las celdas de principio a fin:
 
 - Esto generará un archivo `.csv` de entrada que la aplicación utilizará para hacer predicciones.
 - También entrenará y guardará dos modelos como `rf_model_monto.joblib` (para monto estimado) y `rf_model_fecha.pkl` (para días estimados).
@@ -123,7 +123,7 @@ La interfaz estará accesible en `http://localhost:5173`.
 
 ## Replicabilidad paso a paso
 
-1. Ejecuta el notebook `hey_predictions.ipynb`.
+1. Ejecuta el notebook `Hey_prediction.ipynb`.
 2. Guarda los modelos `.joblib` en la carpeta `backend/`.
 3. Ejecuta el servidor Flask.
 4. Levanta el frontend.
